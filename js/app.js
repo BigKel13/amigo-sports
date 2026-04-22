@@ -48,6 +48,24 @@
     // Initial render
     window.AmigoMap.filters.applyFilters();
 
+    // Mobile sidebar toggle
+    const toggle = document.getElementById('sidebar-toggle');
+    const sidebar = document.getElementById('sidebar');
+    const mainContent = document.querySelector('.main-content');
+    if (toggle && sidebar) {
+      // Collapsed by default on mobile
+      if (window.matchMedia('(max-width: 768px)').matches) {
+        sidebar.classList.add('mobile-collapsed');
+        mainContent.classList.add('sidebar-collapsed');
+      }
+      toggle.addEventListener('click', () => {
+        const collapsed = sidebar.classList.toggle('mobile-collapsed');
+        mainContent.classList.toggle('sidebar-collapsed', collapsed);
+        toggle.textContent = collapsed ? 'Show list' : 'Hide list';
+        if (!collapsed) setTimeout(() => map.invalidateSize(), 100);
+      });
+    }
+
     // Pipeline stat click — filter by status
     document.querySelectorAll('.pipe-stat').forEach(stat => {
       stat.addEventListener('click', () => {

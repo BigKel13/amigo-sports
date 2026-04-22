@@ -7,6 +7,19 @@ let currentSort = 'name';
 let currentSchool = null;
 let debounceTimer = null;
 
+function formatLastContacted(iso) {
+  if (!iso) return 'Never';
+  const then = new Date(iso);
+  if (isNaN(then.getTime())) return 'Never';
+  const now = new Date();
+  const days = Math.floor((now - then) / 86400000);
+  if (days === 0) return 'Today';
+  if (days === 1) return 'Yesterday';
+  if (days < 7) return `${days} days ago`;
+  if (days < 30) return `${Math.floor(days / 7)}w ago`;
+  return then.toLocaleDateString();
+}
+
 function renderList(schools) {
   const listEl = document.getElementById('school-list');
   const sorted = sortSchools(schools, currentSort);
@@ -84,7 +97,9 @@ function renderDetailContent(school) {
       <div class="poc-title">${p.title || ''}</div>
       ${p.email ? `<div class="poc-contact">${p.email}</div>` : ''}
       ${p.phone ? `<div class="poc-contact">${p.phone}</div>` : ''}
+      <div class="poc-last-contacted">Last contacted: <strong>${formatLastContacted(p.lastContacted)}</strong></div>
       <div class="poc-actions">
+        <button class="btn-tiny mark-contacted">Mark contacted today</button>
         <button class="btn-tiny edit-poc">Edit</button>
         <button class="btn-tiny danger remove-poc">Remove</button>
       </div>
@@ -169,6 +184,13 @@ function renderDetailContent(school) {
       renderDetailContent(school);
     });
   });
+  document.querySelectorAll('.mark-contacted').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const pocId = e.target.closest('.poc-card').dataset.pocId;
+      window.AmigoMap.crm.updatePoc(school.id, pocId, { lastContacted: new Date().toISOString() });
+      renderDetailContent(school);
+    });
+  });
   document.querySelectorAll('.edit-poc').forEach(btn => {
     btn.addEventListener('click', (e) => {
       const pocId = e.target.closest('.poc-card').dataset.pocId;
@@ -188,6 +210,8 @@ function showPocForm(school, existingPoc = null) {
         <input type="email" id="poc-email" placeholder="Email" value="${existingPoc?.email || ''}" />
         <input type="tel" id="poc-phone" placeholder="Phone" value="${existingPoc?.phone || ''}" />
       </div>
+      <label style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;display:block;margin-top:4px;margin-bottom:2px">Last contacted</label>
+      <input type="date" id="poc-last-contacted" value="${existingPoc?.lastContacted ? existingPoc.lastContacted.slice(0,10) : ''}" />
       <div style="display:flex;gap:6px;margin-top:6px">
         <button class="btn-primary" id="save-poc">${existingPoc ? 'Update' : 'Add'} Contact</button>
         <button class="btn-ghost" id="cancel-poc">Cancel</button>
@@ -195,11 +219,13 @@ function showPocForm(school, existingPoc = null) {
     </div>`;
 
   document.getElementById('save-poc').addEventListener('click', () => {
+    const dateVal = document.getElementById('poc-last-contacted').value;
     const poc = {
       name: document.getElementById('poc-name').value,
       title: document.getElementById('poc-title').value,
       email: document.getElementById('poc-email').value,
       phone: document.getElementById('poc-phone').value,
+      lastContacted: dateVal ? new Date(dateVal + 'T12:00:00').toISOString() : (existingPoc?.lastContacted || null),
     };
     if (existingPoc) {
       window.AmigoMap.crm.updatePoc(school.id, existingPoc.id, poc);

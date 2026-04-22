@@ -133,18 +133,21 @@
       </div>
     </aside>
   </div>
+  <button class="sidebar-toggle" id="sidebar-toggle">Show list</button>
 </div>
 
 <!-- Export modal -->
 <div class="modal-overlay hidden" id="export-modal">
   <div class="modal">
-    <h3>Export Data</h3>
-    <p>Download your CRM data for all schools.</p>
+    <h3>Export / Import Data</h3>
+    <p>Download your CRM data, or load a JSON export from another device.</p>
     <div class="modal-actions">
       <button class="btn-primary" id="export-csv">Export CSV</button>
       <button class="btn-secondary" id="export-json">Export JSON</button>
+      <button class="btn-secondary" id="import-json">Import JSON</button>
       <button class="btn-ghost" id="close-export">Cancel</button>
     </div>
+    <input type="file" id="import-file" accept="application/json,.json" style="display:none">
   </div>
 </div>
 
